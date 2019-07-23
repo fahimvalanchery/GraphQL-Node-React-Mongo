@@ -10,11 +10,18 @@ const graphqlHttp = require('express-graphql');
  */
 const { buildSchema } = require('graphql');
 
-const app = express();
 /**
- * temporary storage
+ * import mongoose library to connect mongoDB
  */
-const eventsArray = [];
+const mongoose = require('mongoose');
+
+/**
+ * import the model
+ */
+
+const EventModel = require('./models/event');
+
+const app = express();
 
 app.use(bodyParser.json());
 
@@ -58,22 +65,44 @@ app.use(
     ),
     rootValue: {
       events: () => {
-        return eventsArray;
+        return EventModel.find()
+          .then(events => {
+            return events.map(event => {
+              return { ...event._doc, _id: event.id };
+            });
+          })
+          .catch(err => {
+            console.log(err);
+          });
       },
       createEvent: args => {
-        const event = {
-          _id: Math.random().toString(),
+        const event = new EventModel({
           title: args.eventInput.title,
           description: args.eventInput.description,
           price: +args.eventInput.price,
-          date: args.eventInput.date
-        };
-        eventsArray.push(event);
-        return event;
+          date: new Date(args.eventInput.date)
+        });
+        return event
+          .save()
+          .then(result => {
+            console.log(result);
+            return { ...result._doc, _id: result.id };
+          })
+          .catch(err => {
+            console.log(err);
+            throw err;
+          });
       }
     },
     graphiql: true
   })
 );
 
-app.listen(3000);
+mongoose
+  .connect('mongodb://127.0.0.1:27017/events', { useNewUrlParser: true })
+  .then(() => {
+    app.listen(3000);
+  })
+  .catch(err => {
+    console.log(err);
+  });
