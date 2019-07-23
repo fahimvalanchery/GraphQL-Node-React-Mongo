@@ -20,7 +20,11 @@ const mongoose = require('mongoose');
  */
 
 const EventModel = require('./models/event');
-
+const UserModel = require('./models/user');
+/**
+ * hash password
+ */
+const bcrypt = require('bcryptjs');
 const app = express();
 
 app.use(bodyParser.json());
@@ -43,6 +47,12 @@ app.use(
         date:String!
       }
 
+      type User{
+        _id:ID
+        email:String!
+        password:String
+      }
+
       input EventInput{
         title:String!
         description:String!,
@@ -50,11 +60,17 @@ app.use(
         date:String!
       }
 
+      input UserInput{
+        email:String!
+        password:String!
+      }
+
         type RootQuery{
             events:[Event!]!
         }
         type RootMutation{
             createEvent(eventInput:EventInput):Event
+            createUser(userInput:UserInput):User
         }
 
         schema{
@@ -90,6 +106,30 @@ app.use(
           })
           .catch(err => {
             console.log(err);
+            throw err;
+          });
+      },
+      createUser: args => {
+        return UserModel.findOne({
+          email: args.userInput.email
+        })
+          .then(user => {
+            if (user) {
+              throw new Error('User Exists Already');
+            }
+            return bcrypt.hash(args.userInput.password, 12);
+          })
+          .then(hashedPassword => {
+            const user = new UserModel({
+              email: args.userInput.email,
+              password: hashedPassword
+            });
+            return user.save();
+          })
+          .then(result => {
+            return { ...result._doc, password: null, _id: result.id };
+          })
+          .catch(err => {
             throw err;
           });
       }
