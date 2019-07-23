@@ -16,10 +16,12 @@ const mongoose = require('mongoose');
 const graphQLSchema = require('./graphql/schema/index');
 const graphQLResolvers = require('./graphql/resolvers/index');
 
+const isAuth = require('./middleware/is-auth');
 const app = express();
 
 app.use(bodyParser.json());
 
+app.use(isAuth);
 /**
  * first argument is api endpoint name, Here iam using '/graphql'
  * second argument is middleware function
