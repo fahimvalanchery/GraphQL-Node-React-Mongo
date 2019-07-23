@@ -29,6 +29,35 @@ const app = express();
 
 app.use(bodyParser.json());
 
+const user = userId => {
+  return UserModel.findById(userId)
+    .then(user => {
+      return {
+        ...user._doc,
+        _id: user.id,
+        createdEvents: events.bind(this, user._doc.createdEvents)
+      };
+    })
+    .catch(err => {
+      throw err;
+    });
+};
+
+const events = eventIds => {
+  return EventModel.find({ _id: { $in: eventIds } })
+    .then(events => {
+      return events.map(event => {
+        return {
+          ...event._doc,
+          _id: event.id,
+          creator: user.bind(this, event.creator)
+        };
+      });
+    })
+    .catch(err => {
+      throw err;
+    });
+};
 /**
  * first argument is api endpoint name, Here iam using '/graphql'
  * second argument is middleware function
@@ -45,12 +74,14 @@ app.use(
         description:String!,
         price:Float!,
         date:String!
+        creator:User!
       }
 
       type User{
         _id:ID
         email:String!
         password:String
+        createdEvents:[Event!]
       }
 
       input EventInput{
@@ -81,15 +112,26 @@ app.use(
     ),
     rootValue: {
       events: () => {
-        return EventModel.find()
-          .then(events => {
-            return events.map(event => {
-              return { ...event._doc, _id: event.id };
-            });
-          })
-          .catch(err => {
-            console.log(err);
-          });
+        return (
+          EventModel.find()
+            // .populate('creator')
+            .then(events => {
+              return events.map(event => {
+                return {
+                  ...event._doc,
+                  _id: event.id,
+                  creator: user.bind(this, event._doc.creator)
+                  // creator: {
+                  //   ...event._doc.creator._doc,
+                  //   _id: event._doc.id
+                  // }
+                };
+              });
+            })
+            .catch(err => {
+              console.log(err);
+            })
+        );
       },
       createEvent: args => {
         const event = new EventModel({
@@ -103,7 +145,11 @@ app.use(
         return event
           .save()
           .then(result => {
-            createdEvent = { ...result._doc, _id: result.id };
+            createdEvent = {
+              ...result._doc,
+              _id: result.id,
+              creator: user.bind(this, result._doc.creator)
+            };
             return UserModel.findById('5d3698bf896b6c2c301e6869');
           })
           .then(user => {
