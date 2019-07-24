@@ -4,6 +4,7 @@ import Modal from '../components/modal/modal';
 import BackDrop from '../components/backdrop/backdrop';
 
 import AuthContext from '../context/auth-context';
+import EventList from '../components/events/eventList/eventList';
 
 class EventsPage extends Component {
   state = {
@@ -136,13 +137,6 @@ class EventsPage extends Component {
   };
 
   render() {
-    const eventList = this.state.events.map(event => {
-      return (
-        <li key={event._id} className="events__list-item">
-          {event.title}
-        </li>
-      );
-    });
     return (
       <React.Fragment>
         {this.state.creating && <BackDrop />}
@@ -183,7 +177,7 @@ class EventsPage extends Component {
             </button>
           </div>
         )}
-        <ul className="events__list">{eventList}</ul>
+        <EventList events={this.state.events} />
       </React.Fragment>
     );
   }
