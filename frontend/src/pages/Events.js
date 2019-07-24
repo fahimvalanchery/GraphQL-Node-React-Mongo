@@ -61,10 +61,7 @@ class EventsPage extends Component {
             price,
             date,
             description
-            creator{
-              _id
-              email
-            }
+            
           }
         }
         `
@@ -108,7 +105,10 @@ class EventsPage extends Component {
           price,
           date,
           description
-         
+          creator{
+            _id
+            email
+          }
         }
       }
       `
@@ -128,6 +128,7 @@ class EventsPage extends Component {
         return res.json();
       })
       .then(resData => {
+        console.log(resData);
         const events = resData.data.events;
         this.setState({ events: events });
       })
@@ -177,7 +178,11 @@ class EventsPage extends Component {
             </button>
           </div>
         )}
-        <EventList events={this.state.events} />
+
+        <EventList
+          events={this.state.events}
+          authUserId={this.context.userId}
+        />
       </React.Fragment>
     );
   }
