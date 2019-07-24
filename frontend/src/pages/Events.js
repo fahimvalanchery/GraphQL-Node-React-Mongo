@@ -7,7 +7,8 @@ import AuthContext from '../context/auth-context';
 
 class EventsPage extends Component {
   state = {
-    creating: false
+    creating: false,
+    events: []
   };
 
   static contextType = AuthContext;
@@ -19,13 +20,17 @@ class EventsPage extends Component {
     this.descriptionRef = React.createRef();
   }
 
+  componentDidMount() {
+    this.fetchEvents();
+  }
+
   startCreateEventHandler = () => {
     this.setState({ creating: true });
   };
   modalConfirmHandler = () => {
     this.setState({ creating: false });
     const title = this.titleRef.current.value;
-    const price = +this.priceRef.current.value;
+    const price = parseFloat(this.priceRef.current.value);
     const date = this.dateRef.current.value;
     const description = this.descriptionRef.current.value;
 
@@ -37,14 +42,15 @@ class EventsPage extends Component {
     ) {
       return;
     }
-    // const event = { title, price, date, description };
+    const event = { title, price, date, description };
+    console.log(event);
 
     const requestBody = {
       query: `
         mutation{
           createEvent(eventInput:{
             title:"${title}",
-            price:"${price}",
+            price:${price},
             date:"${date}",
             description:"${description}",
           })
@@ -80,7 +86,7 @@ class EventsPage extends Component {
         return res.json();
       })
       .then(resData => {
-        console.log(resData);
+        this.fetchEvents();
       })
       .catch(err => {
         console.log(err);
@@ -89,7 +95,54 @@ class EventsPage extends Component {
   modalCancelHandler = () => {
     this.setState({ creating: false });
   };
+
+  fetchEvents = () => {
+    const requestBody = {
+      query: `
+      query{
+        events
+        {
+          _id,
+          title,
+          price,
+          date,
+          description
+         
+        }
+      }
+      `
+    };
+
+    fetch('http://localhost:8000/graphql', {
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(res => {
+        if (res.status !== 200 && res.status !== 201) {
+          throw new Error('Failed');
+        }
+        return res.json();
+      })
+      .then(resData => {
+        const events = resData.data.events;
+        this.setState({ events: events });
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  };
+
   render() {
+    const eventList = this.state.events.map(event => {
+      return (
+        <li key={event._id} className="events__list-item">
+          {event.title}
+        </li>
+      );
+    });
     return (
       <React.Fragment>
         {this.state.creating && <BackDrop />}
@@ -122,7 +175,7 @@ class EventsPage extends Component {
           </Modal>
         )}
 
-        {!this.context.token && (
+        {this.context.token && (
           <div className="events-control">
             <p>Share Your Own Events</p>
             <button className="btn" onClick={this.startCreateEventHandler}>
@@ -130,6 +183,7 @@ class EventsPage extends Component {
             </button>
           </div>
         )}
+        <ul className="events__list">{eventList}</ul>
       </React.Fragment>
     );
   }
