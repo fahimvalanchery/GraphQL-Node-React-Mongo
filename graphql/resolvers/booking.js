@@ -9,7 +9,7 @@ module.exports = {
       throw new Error('Not Authenticated');
     }
     try {
-      const bookings = await BookingModel.find();
+      const bookings = await BookingModel.find({ user: req.userId });
       return bookings.map(booking => {
         return transformBooking(booking);
       });
