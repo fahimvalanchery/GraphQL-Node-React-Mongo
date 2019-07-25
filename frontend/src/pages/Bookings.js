@@ -62,14 +62,17 @@ class BookingsPage extends Component {
   deleteBookingHandler = bookingId => {
     const requestBody = {
       query: `
-      mutation{
-        cancelBooking(bookingId:"${bookingId}")
+      mutation CancelBooking($id:ID!){
+        cancelBooking(bookingId:$id)
         {
           _id
           title
         }
       }
-      `
+      `,
+      variables: {
+        id: bookingId
+      }
     };
 
     const token = this.context.token;
