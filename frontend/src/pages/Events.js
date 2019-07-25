@@ -15,6 +15,8 @@ class EventsPage extends Component {
     selectedEvent: null
   };
 
+  isActive = true;
+
   static contextType = AuthContext;
   constructor(props) {
     super(props);
@@ -118,9 +120,9 @@ class EventsPage extends Component {
     const requestBody = {
       query: `
       mutation{
-        bookEvent(eventId:"${this.state.selectedEvent._id})
+        bookEvent(eventId:"${this.state.selectedEvent._id}")
         {
-          _id,
+          _id
          createdAt
          updatedAt
         }
@@ -186,12 +188,15 @@ class EventsPage extends Component {
         return res.json();
       })
       .then(resData => {
-        console.log(resData);
         const events = resData.data.events;
-        this.setState({ events: events, isLoading: false });
+        if (this.isActive) {
+          this.setState({ events: events, isLoading: false });
+        }
       })
       .catch(err => {
-        this.setState({ isLoading: false });
+        if (this.isActive) {
+          this.setState({ isLoading: false });
+        }
         console.log(err);
       });
   };
@@ -203,6 +208,9 @@ class EventsPage extends Component {
     });
   };
 
+  componentWillUnmount() {
+    this.isActive = false;
+  }
   render() {
     return (
       <React.Fragment>
