@@ -18,7 +18,7 @@ const graphQLResolvers = require('./graphql/resolvers/index');
 
 const isAuth = require('./middleware/is-auth');
 const app = express();
-
+const port = process.env.PORT || 8000;
 app.use(bodyParser.json());
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -48,7 +48,8 @@ app.use(
 mongoose
   .connect('mongodb://127.0.0.1:27017/events', { useNewUrlParser: true })
   .then(() => {
-    app.listen(8000);
+    app.listen(port);
+    console.log(`server running on the port ${port}`);
   })
   .catch(err => {
     console.log(err);
