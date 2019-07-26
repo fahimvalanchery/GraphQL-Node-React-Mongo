@@ -21,5 +21,8 @@
     "start": "concurrently \"node app.js\" \"cd frontend && npm start\""
   },
   "author": "fahimvalanchery",
-  "license": "ISC"
+  "license": "ISC",
+  "engines": {
+    "node": "10.3.0"
+  }
 }
