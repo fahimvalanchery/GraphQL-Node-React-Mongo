@@ -18,7 +18,11 @@ const graphQLResolvers = require('./graphql/resolvers/index');
 
 const isAuth = require('./middleware/is-auth');
 const app = express();
-const port = process.env.PORT || 8000;
+/**
+ *
+ */
+const path = require('path');
+
 app.use(bodyParser.json());
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -45,11 +49,18 @@ app.use(
   })
 );
 
+app.use(express.static('public'));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve(__dirname, 'public', 'index.html'));
+});
+
+const port = process.env.PORT || 8000;
+
 mongoose
   .connect('mongodb://127.0.0.1:27017/events', { useNewUrlParser: true })
   .then(() => {
-    app.listen(port);
-    console.log(`server running on the port ${port}`);
+    app.listen(port, () => console.log(`server running on the port ${port}`));
   })
   .catch(err => {
     console.log(err);
